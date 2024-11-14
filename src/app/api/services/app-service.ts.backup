@@ -1,0 +1,203 @@
+import axios, { AxiosError } from "axios";
+import { redirect } from 'next/navigation';
+
+// Define the structure for the API response
+interface ApiResponse<T = any> {
+  statusCode: number;
+  message?: string;
+  data?: T;
+  response?: T;
+}
+
+interface ErrorResponse {
+  statusCode: number | null;
+  errorData: any;
+  message?: string;
+  response?: null;
+  data?: [];
+}
+
+type ResponseType<T> = ApiResponse<T> | ErrorResponse;
+
+const BASE_URL_API = process.env.NEXT_PUBLIC_BASE_URL_API || '';
+
+const serviceGet = async (
+  path: string,
+  params: Record<string, any> = {}
+): Promise<ApiResponse | ErrorResponse> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: localStorage.getItem('token') || ''
+  };
+
+  try {
+    const response = await axios.get(BASE_URL_API + path, { headers, params });
+    return { statusCode: response.status, message: response.data.message ?? 'success', data: response.data.data };
+  } catch (error) {
+    console.log("============= RESPONSE ERROR =============");
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response ? error.response.status : null;
+      const errorData = error.response ? error.response.data : error.message;
+      console.log('Error status code:', statusCode);
+      console.log('Error data:', 'Internal server error.');
+      // console.log('Error data:', errorData);
+      return { statusCode, errorData };
+    } else {
+      console.error('Unexpected error:', error);
+      return { statusCode: null, errorData: error };
+    }
+  }
+};
+
+const servicePost = async (
+  path: string,
+  params: Record<string, any> = {}
+): Promise<ApiResponse | ErrorResponse> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: localStorage.getItem('token') || ''
+  };
+
+  try {
+    const response = await axios.post(BASE_URL_API + path, params, { headers });
+    console.log("============= RESPONSE SERVICE POST SUCCESS =============");
+    console.log(response)
+    return { statusCode: response.status, message: response.data.message, data: response.data.data };
+  } catch (error) {
+    console.log("============= RESPONSE ERROR =============");
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response ? error.response.status : null;
+      const errorData = error.response ? error.response.data : error.message;
+      console.log('Error status code:', statusCode);
+      console.log('Error data:', errorData);
+      return { statusCode, errorData };
+    } else {
+      console.error('Unexpected error:', error);
+      return { statusCode: null, errorData: error };
+    }
+  }
+};
+
+const servicePut = async (
+  path: string,
+  params: Record<string, any> = {}
+): Promise<ApiResponse | ErrorResponse> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: localStorage.getItem('token') || ''
+  };
+
+  try {
+    const response = await axios.put(BASE_URL_API + path, params, { headers });
+    return response.data;
+  } catch (error) {
+    console.log("============= RESPONSE ERROR =============");
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response ? error.response.status : null;
+      console.log('Error status code:', statusCode);
+      if (statusCode === 401) {
+        // Redirect to login if unauthorized
+        redirect('/login');
+      }
+      return error.response?.data;
+    } else {
+      console.error('Unexpected error:', error);
+      return { statusCode: null, errorData: error };
+    }
+  }
+};
+
+const servicePatch = async (
+  path: string,
+  params: Record<string, any> = {}
+): Promise<ApiResponse | ErrorResponse> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: localStorage.getItem('token') || ''
+  };
+
+  try {
+    const response = await axios.patch(BASE_URL_API + path, params, { headers });
+    console.log("============= RESPONSE SERVICE PATCH SUCCESS =============");
+    return { statusCode: response.status, message: response.data.message, data: response.data.data };
+  } catch (error) {
+    console.log("============= RESPONSE ERROR =============");
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response ? error.response.status : null;
+      const errorData = error.response ? error.response.data : error.message;
+      console.log('Error status code:', statusCode);
+      console.log('Error data:', errorData);
+      return { statusCode, errorData };
+    } else {
+      console.error('Unexpected error:', error);
+      return { statusCode: null, errorData: error };
+    }
+  }
+};
+
+const serviceDelete = async (
+  path: string,
+  params: Record<string, any> = {}
+): Promise<ApiResponse | ErrorResponse> => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: localStorage.getItem('token') || ''
+  };
+
+  try {
+    const response = await axios.delete(BASE_URL_API + path, { headers, data: params });
+    console.log("============= RESPONSE SUCCESS =============");
+    return { statusCode: response.status, message: response.data };
+  } catch (error) {
+    console.log("============= RESPONSE ERROR =============");
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response ? error.response.status : null;
+      const errorData = error.response ? error.response.data : error.message;
+      console.log('Error status code:', statusCode);
+      console.log('Error data:', errorData);
+      return { statusCode, errorData };
+    } else {
+      console.error('Unexpected error:', error);
+      return { statusCode: null, errorData: error };
+    }
+  }
+};
+
+const serviceUploadImagePost = async (
+  path: string,
+  formData: FormData
+): Promise<ApiResponse | ErrorResponse> => {
+  const headers = {
+    'Content-Type': 'multipart/form-data',
+    Authorization: localStorage.getItem('token') || '',
+  };
+
+  try {
+    const response = await axios.post(BASE_URL_API + path, formData, { headers });
+    console.log("============= RESPONSE SUCCESS =============");
+    return { statusCode: response.status, message: response.data.message, response: response.data.data };
+  } catch (error) {
+    console.log("============= RESPONSE ERROR =============");
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response ? error.response.status : null;
+      const errorData = error.response ? error.response.data : error.message;
+      console.log('Error status code:', statusCode);
+      console.log('Error data:', errorData);
+      return { statusCode, errorData };
+    } else {
+      console.error('Unexpected error:', error);
+      return { statusCode: null, errorData: error };
+    }
+  }
+};
+
+const AppService = {
+  serviceGet,
+  servicePost,
+  servicePut,
+  servicePatch,
+  serviceDelete,
+  serviceUploadImagePost,
+};
+
+export default AppService;
